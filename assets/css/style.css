@@ -1,0 +1,39 @@
+/* assets/css/style.css */
+:root {
+    --primary: #007bff;
+    --success: #28a745;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #343a40;
+}
+
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; margin: 0; color: #333; line-height: 1.6; }
+
+/* Layout */
+.container { max-width: 960px; margin: 0 auto; padding: 20px; }
+header { background: white; border-bottom: 1px solid #ddd; padding: 1rem 0; margin-bottom: 2rem; }
+.navbar { display: flex; justify-content: space-between; align-items: center; }
+.logo { font-weight: bold; font-size: 1.5rem; color: var(--primary); text-decoration: none; }
+nav a { margin-left: 20px; text-decoration: none; color: #555; font-weight: 500; }
+nav a:hover { color: var(--primary); }
+.btn { display: inline-block; padding: 8px 16px; border-radius: 4px; text-decoration: none; cursor: pointer; border: none; font-size: 1rem; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-success { background: var(--success); color: white; }
+
+/* Forms */
+.card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.form-group { margin-bottom: 1rem; }
+label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+input, textarea, select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+
+/* Alerts */
+.alert { padding: 10px; border-radius: 4px; margin-bottom: 20px; }
+.alert-error { background: #f8d7da; color: #721c24; }
+.alert-success { background: #d4edda; color: #155724; }
+
+/* Tasks */
+.task-list { list-style: none; padding: 0; }
+.task-item { background: white; border: 1px solid #e9ecef; padding: 15px; margin-bottom: 10px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+.status-badge { padding: 4px 8px; border-radius: 12px; font-size: 0.85rem; background: #eee; }
+.status-pending { background: #fff3cd; color: #856404; }
+.status-completed { background: #d4edda; color: #155724; }

@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "email": "zxcvzxcv@gmail.com",
+        "password": "$2y$10$rSsPTaM5Za69tWOshPR91OHBxdbt99SJUUDWhc9hLCFQ74uhmi6H2",
+        "role": "user"
+    },
+    {
+        "id": 2,
+        "email": "akjol.nuketaev.2001@mail.ru",
+        "password": "$2y$10$t1thcXXZP6Fj4yAXld3MReb8RbAwyqYr7YCACDiNjqJJTP6J.jpbC",
+        "role": "user"
+    }
+]
