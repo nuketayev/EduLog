@@ -10,7 +10,7 @@
 
 <header>
     <div class="container navbar">
-        <a href="index.php" class="logo"><?= APP_NAME ?></a>
+        <a href="index.php" class="logo"><?= defined('APP_NAME') ? APP_NAME : 'EduLog' ?></a>
         <nav>
             <?php if (isset($_SESSION['user_id'])): ?>
                 <a href="index.php">Moje Úkoly</a>
@@ -18,6 +18,7 @@
                 <a href="logout.php" style="color: var(--danger);">Odhlásit</a>
             <?php else: ?>
                 <a href="login.php">Přihlášení</a>
+                <a href="register.php" class="btn btn-primary">Registrace</a>
             <?php endif; ?>
         </nav>
     </div>
@@ -26,9 +27,12 @@
 <main class="container">
     <?php 
     // Display Flash Messages
-    $msg = get_flash();
-    if ($msg): ?>
-        <div class="alert alert-<?= $msg['type'] ?>">
-            <?= h($msg['msg']) ?>
-        </div>
-    <?php endif; ?>
+    if (function_exists('get_flash')) {
+        $msg = get_flash();
+        if ($msg): ?>
+            <div class="alert alert-<?= $msg['type'] ?>">
+                <?= h($msg['msg']) ?>
+            </div>
+        <?php endif; 
+    }
+    ?>
