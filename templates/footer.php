@@ -1,8 +1,14 @@
-</main>
+</main> 
 
-<footer style="text-align:center; margin-top:50px; color:#777;">
-    <small>&copy; 2025 <?= APP_NAME ?> - Semestrální práce - AkzholNuketayev</small>
+<div id="imageModal">
+    <span class="close-modal">&times;</span>
+    <img id="modalImage"> 
+</div>
+
+<footer class="text-center mt-50 text-muted mb-20">
+    <small>&copy; 2025 <?= defined('APP_NAME') ? APP_NAME : 'EduLog' ?> - Semestrální práce - AkzholNuketayev</small>
 </footer>
 
+<script src="assets/js/script.js?v=2.0"></script>
 </body>
 </html>

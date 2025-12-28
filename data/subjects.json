@@ -8,5 +8,10 @@
         "id": 2,
         "user_id": 4,
         "name": "ZMT"
+    },
+    {
+        "id": 6,
+        "user_id": 4,
+        "name": "<script>alert('Hacked')<\/script>"
     }
 ]

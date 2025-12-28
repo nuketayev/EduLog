@@ -1,5 +1,5 @@
 <?php
-// create.php
+// create new task page
 require 'lib/common.php';
 require_auth();
 
@@ -11,7 +11,15 @@ if (function_exists('get_subjects')) {
     });
 }
 
+// init vars for form
+$title = '';
+$description = '';
+$date = '';
+$subject_id = '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
     $title = trim($_POST['title']);
     $description = trim($_POST['description'] ?? '');
     $date = $_POST['due_date'];
@@ -20,15 +28,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($title && $date) {
         $tasks = get_tasks();
         
-        // Image Upload Logic
+        // handle image upload
         $image_file = null;
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
             if (in_array($ext, ['jpg', 'jpeg', 'png', 'gif'])) {
                 $new_name = uniqid() . '.' . $ext;
-                $dest = __DIR__ . '/assets/uploads/' . $new_name;
+                $upload_dir = __DIR__ . '/assets/uploads/';
+                $dest = $upload_dir . $new_name;
+                
                 if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
                     $image_file = $new_name;
+                    // make thumb
+                    make_thumb($dest, $upload_dir . 'thumb_' . $new_name, 300);
                 }
             }
         }
@@ -45,57 +57,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         save_tasks($tasks);
-        set_flash('success', 'Úkol byl přidán.');
+        set_flash('success', 'Task created.');
         header("Location: index.php");
         exit();
     } else {
-        set_flash('error', 'Vyplňte povinná pole.');
+        set_flash('error', 'Please fill required fields.');
     }
 }
 
 include 'templates/header.php';
 ?>
 
-<div class="card" style="max-width: 500px; margin: 0 auto;">
-    <h2>Nový úkol</h2>
+<div class="card card-narrow">
+    <h2>New Task</h2>
     <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="<?= generate_csrf() ?>">
+        
         <?php if (!empty($subjects)): ?>
         <div class="form-group">
-            <label>Předmět:</label>
-            <select name="subject_id">
-                <option value="">-- Bez předmětu --</option>
+            <label for="subject_id">Subject:</label>
+            <select name="subject_id" id="subject_id">
+                <option value="">-- None --</option>
                 <?php foreach($subjects as $s): ?>
-                    <option value="<?= $s['id'] ?>"><?= h($s['name']) ?></option>
+                    <option value="<?= $s['id'] ?>" <?= $subject_id == $s['id'] ? 'selected' : '' ?>>
+                        <?= h($s['name']) ?>
+                    </option>
                 <?php endforeach; ?>
             </select>
         </div>
         <?php endif; ?>
 
         <div class="form-group">
-            <label>Název úkolu: *</label>
-            <input type="text" name="title" required placeholder="Např. Koupit skripta">
+            <label for="title">Title: *</label>
+            <input type="text" name="title" id="title" required value="<?= h($title) ?>">
         </div>
 
         <div class="form-group">
-            <label>Podrobný popis:</label>
-            <textarea name="description" rows="4" placeholder="Zde můžete rozepsat detaily úkolu..."></textarea>
+            <label for="description">Description:</label>
+            <textarea name="description" id="description" rows="4"><?= h($description) ?></textarea>
         </div>
 
         <div class="form-group">
-            <label>Termín: *</label>
-            <input type="date" name="due_date" required>
+            <label for="due_date">Due Date: *</label>
+            <input type="date" name="due_date" id="due_date" required value="<?= h($date) ?>">
         </div>
 
         <div class="form-group">
-            <label>Obrázek (volitelné):</label>
-            <input type="file" name="image" accept="image/*">
+            <label for="image">Image (optional):</label>
+            <input type="file" name="image" id="image" accept="image/*">
         </div>
 
-        <button type="submit" class="btn btn-success" style="width:100%">Uložit úkol</button>
+        <button type="submit" class="btn btn-success w-100">Save Task</button>
     </form>
-    <div style="text-align:center; margin-top:15px;">
-        <a href="index.php" style="color:#777;">Zrušit</a>
+    <div class="text-center mt-15">
+        <a href="index.php" class="text-muted">Cancel</a>
     </div>
 </div>
-
 <?php include 'templates/footer.php'; ?>

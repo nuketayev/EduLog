@@ -1,94 +1,157 @@
 <?php
-// index.php
+// main dashboard page
 require 'lib/common.php';
 require_auth();
 
 $user_id = $_SESSION['user_id'];
-$all_tasks = get_tasks();
+// get filters from url
+$status_filter = $_GET['status'] ?? 'pending';
+$subject_filter = $_GET['subject_id'] ?? '';
 
-// Load Subjects (if exists)
+// load data from json
+$all_tasks = get_tasks();
+$all_subjects = get_subjects();
+
+// map subjects to ids
 $subject_map = [];
-if (function_exists('get_subjects')) {
-    foreach (get_subjects() as $s) {
-        $subject_map[$s['id']] = $s['name'];
-    }
+$my_subjects = [];
+foreach ($all_subjects as $s) {
+    $subject_map[$s['id']] = $s['name'];
+    if ($s['user_id'] == $user_id) $my_subjects[] = $s;
 }
 
-// Filter My Tasks
-$my_tasks = array_filter($all_tasks, function($t) use ($user_id) {
-    return $t['user_id'] == $user_id;
-});
+// get filtered lists using helper function
+$my_tasks_all = get_filtered_tasks($all_tasks, $user_id); // needed for stats count
+$filtered_tasks = get_filtered_tasks($all_tasks, $user_id, $status_filter, $subject_filter); // needed for view
 
-// Stats
-$total = count($my_tasks);
-$pending = count(array_filter($my_tasks, fn($t) => $t['status'] === 'pending'));
+// prepare data for display (dates, images, etc)
+foreach ($filtered_tasks as &$task) {
+    $task = enrich_task_data($task, $subject_map);
+}
+unset($task);
+
+// calc stats
+$total = count($my_tasks_all);
+$pending = count(array_filter($my_tasks_all, fn($t) => $t['status'] === 'pending'));
 $completed = $total - $pending;
+
+// pagination logic
+$page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
+$per_page = 5; 
+$total_visible = count($filtered_tasks);
+$max_pages = ceil($total_visible / $per_page);
+// slice array for current page
+$paged_tasks = array_slice($filtered_tasks, ($page - 1) * $per_page, $per_page);
 
 include 'templates/header.php';
 ?>
 
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+<div class="flex-between mb-20">
     <h1>Můj Přehled</h1>
     <div>
-        <a href="subjects.php" class="btn" style="background:#6c757d; color:white; margin-right:5px;">Spravovat předměty</a>
+        <a href="export.php" class="btn btn-info mr-5">Export CSV</a>
+        <a href="subjects.php" class="btn btn-secondary mr-5">Předměty</a>
         <a href="create.php" class="btn btn-success">+ Nový úkol</a>
     </div>
 </div>
 
-<div style="display:flex; gap:15px; margin-bottom:30px;">
-    <div class="card" style="flex:1; text-align:center; padding:15px;">
-        <h3 style="margin:0; font-size:2rem; color:#007bff;"><?= $total ?></h3>
-        <small>Celkem úkolů</small>
+<div class="flex-gap-15 mb-30">
+    <div class="stat-card">
+        <h3 id="stat-total" class="stat-number color-primary"><?= $total ?></h3>
+        <small class="text-muted">Celkem</small>
     </div>
-    <div class="card" style="flex:1; text-align:center; padding:15px;">
-        <h3 style="margin:0; font-size:2rem; color:#dc3545;"><?= $pending ?></h3>
-        <small>Nevyřízeno</small>
+    <div class="stat-card">
+        <h3 id="stat-pending" class="stat-number color-danger"><?= $pending ?></h3>
+        <small class="text-muted">Nevyřízeno</small>
     </div>
-    <div class="card" style="flex:1; text-align:center; padding:15px;">
-        <h3 style="margin:0; font-size:2rem; color:#28a745;"><?= $completed ?></h3>
-        <small>Hotovo</small>
+    <div class="stat-card">
+        <h3 id="stat-completed" class="stat-number color-success"><?= $completed ?></h3>
+        <small class="text-muted">Hotovo</small>
     </div>
 </div>
 
-<?php if (empty($my_tasks)): ?>
-    <div class="card" style="text-align:center; color:#777;">
-        <p>Nemáte žádné úkoly.</p>
-    </div>
-<?php else: ?>
-    <div class="task-list">
-        <?php foreach ($my_tasks as $task): ?>
-            <div class="task-item">
-                <div style="flex:1;">
-                    <?php if(!empty($task['subject_id']) && isset($subject_map[$task['subject_id']])): ?>
-                        <span style="background:#e9ecef; padding:2px 6px; border-radius:4px; font-size:0.8em; color:#555;">
-                            <?= h($subject_map[$task['subject_id']]) ?>
-                        </span>
+<div class="card p-15 mb-20 bg-light">
+    <form id="filterForm" class="flex-gap-15 items-center">
+        <strong>Filtrovat:</strong>
+        <select name="status" class="p-5" aria-label="Stav">
+            <option value="" <?= $status_filter === '' ? 'selected' : '' ?>>Všechny stavy</option>
+            <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>Nevyřízeno</option>
+            <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>Hotovo</option>
+        </select>
+        <select name="subject_id" class="p-5" aria-label="Předmět">
+            <option value="">Všechny předměty</option>
+            <?php foreach($my_subjects as $s): ?>
+                <option value="<?= $s['id'] ?>" <?= $subject_filter == $s['id'] ? 'selected' : '' ?>>
+                    <?= h($s['name']) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </form>
+</div>
+
+<div class="task-list">
+    <?php if (empty($paged_tasks)): ?>
+        <div class="card text-center text-muted">
+            <p>Žádné úkoly k zobrazení.</p>
+        </div>
+    <?php else: ?>
+        <?php foreach ($paged_tasks as $task): ?>
+            <div class="task-item <?= $task['row_class'] ?>">
+                <div class="flex-1">
+                    <?php if($task['subject_name']): ?>
+                        <span class="task-badge"><?= $task['subject_name'] ?></span>
                     <?php endif; ?>
 
-                    <strong style="font-size:1.1em; display:block; margin-top:4px;"><?= h($task['title']) ?></strong>
+                    <strong class="task-title"><?= $task['title'] ?></strong>
                     
-                    <?php if(!empty($task['description'])): ?>
-                        <p style="color:#555; font-size:0.95em; margin:5px 0 10px 0; white-space: pre-wrap;"><?= h($task['description']) ?></p>
+                    <?php if($task['description']): ?>
+                        <p class="task-desc"><?= $task['description'] ?></p>
                     <?php endif; ?>
                     
-                    <small style="color:#777">Termín: <?= h($task['due_date']) ?></small>
+                    <small class="text-muted">
+                        Termín: <?= $task['due_date_formatted'] ?> <?= $task['days_text'] ?>
+                    </small>
                     
-                    <?php if(!empty($task['image'])): ?>
-                        <br><a href="assets/uploads/<?= h($task['image']) ?>" target="_blank" style="font-size:0.85em; color:#007bff;">📎 Zobrazit přílohu</a>
+                    <?php if($task['thumb_url']): ?>
+                        <img 
+                            src="<?= $task['thumb_url'] ?>" 
+                            class="task-thumb js-open-modal" 
+                            alt="Příloha" 
+                            loading="lazy"
+                            data-src="<?= $task['full_url'] ?>"
+                        >
                     <?php endif; ?>
                 </div>
 
-                <div style="text-align:right;">
-                    <span class="status-badge status-<?= h($task['status']) ?>" style="margin-right:10px;">
-                        <?= $task['status'] === 'pending' ? 'Nevyřízeno' : 'Hotovo' ?>
+                <div class="text-right">
+                    <span class="status-badge status-<?= $task['status_class'] ?> mr-10">
+                        <?= $task['status_text'] ?>
                     </span>
                     <br><br>
-                    <a href="edit.php?id=<?= $task['id'] ?>" style="font-size:0.9em; margin-right:5px;">Upravit</a>
-                    <a href="delete.php?type=task&id=<?= $task['id'] ?>" onclick="return confirm('Smazat?')" style="color:red; font-size:0.9em;">Smazat</a>
+                    <?php if($task['status'] !== 'completed'): ?>
+                        <button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="<?= $task['id'] ?>">Hotovo</button>
+                    <?php endif; ?>
+                    <a href="edit.php?id=<?= $task['id'] ?>" class="btn-sm mr-5">Upravit</a>
+                    
+                    <a href="delete.php?type=task&id=<?= $task['id'] ?>&token=<?= generate_csrf() ?>" 
+                       class="text-danger btn-sm js-confirm" 
+                       data-confirm="Smazat?">Smazat</a>
                 </div>
             </div>
         <?php endforeach; ?>
-    </div>
+    <?php endif; ?>
+</div>
+
+<?php if ($max_pages > 1): ?>
+<div id="pagination" class="text-center mt-20">
+    <?php if ($page > 1): ?>
+        <a href="?page=<?= $page - 1 ?>" class="btn btn-pagination">&laquo; Předchozí</a>
+    <?php endif; ?>
+    <span class="mx-10">Strana <?= $page ?> z <?= $max_pages ?></span>
+    <?php if ($page < $max_pages): ?>
+        <a href="?page=<?= $page + 1 ?>" class="btn btn-pagination">Další &raquo;</a>
+    <?php endif; ?>
+</div>
 <?php endif; ?>
 
 <?php include 'templates/footer.php'; ?>

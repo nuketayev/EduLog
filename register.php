@@ -1,25 +1,26 @@
 <?php
-// register.php
+// registration page
 require 'lib/common.php';
 
-// Redirect if already logged in
 if (isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 }
 
+$email = ''; 
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    verify_csrf();
+
     $email = trim($_POST['email']);
     $password = $_POST['password'];
-    $confirm = $_POST['password_confirm']; // confirm password
+    $confirm = $_POST['password_confirm'];
     
     $users = get_users();
 
-    // 1. Validation
     if ($password !== $confirm) {
-        set_flash('error', 'Hesla se neshodují.');
+        set_flash('error', 'Passwords do not match.');
     } else {
-        // 2. Check duplicate email
         $exists = false;
         foreach ($users as $u) {
             if ($u['email'] === $email) {
@@ -29,9 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if ($exists) {
-            set_flash('error', 'Tento email je již registrován.');
+            set_flash('error', 'Email already registered.');
         } else {
-            // 3. Create User
             $users[] = [
                 'id' => get_next_id($users),
                 'email' => $email,
@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ];
             save_users($users);
             
-            set_flash('success', 'Registrace úspěšná. Nyní se můžete přihlásit.');
+            set_flash('success', 'Registration successful. Please login.');
             header("Location: login.php");
             exit();
         }
@@ -50,27 +50,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 include 'templates/header.php';
 ?>
 
-<div class="card" style="max-width: 400px; margin: 0 auto;">
-    <h2 style="text-align:center">Registrace</h2>
+<div class="card card-narrow">
+    <h2 class="text-center">Register</h2>
     <form method="post">
+        <input type="hidden" name="csrf_token" value="<?= generate_csrf() ?>">
         <div class="form-group">
-            <label>Email:</label>
-            <input type="email" name="email" required value="<?= h($email ?? '') ?>">
+            <label for="email">Email:</label>
+            <input type="email" name="email" id="email" required value="<?= h($email) ?>">
         </div>
         <div class="form-group">
-            <label>Heslo:</label>
-            <input type="password" name="password" required minlength="5">
+            <label for="password">Password:</label>
+            <input type="password" name="password" id="password" required minlength="5">
         </div>
         <div class="form-group">
-            <label>Potvrzení hesla:</label>
-            <input type="password" name="password_confirm" required minlength="5">
+            <label for="password_confirm">Confirm Password:</label>
+            <input type="password" name="password_confirm" id="password_confirm" required minlength="5">
         </div>
         
-        <button type="submit" class="btn btn-primary" style="width:100%">Vytvořit účet</button>
+        <button type="submit" class="btn btn-primary w-100">Create Account</button>
     </form>
     
-    <div style="text-align:center; margin-top:15px;">
-        <p>Již máte účet? <a href="login.php">Přihlaste se zde</a>.</p>
+    <div class="text-center mt-15">
+        <p>Already have an account? <a href="login.php">Login here</a>.</p>
     </div>
 </div>
 

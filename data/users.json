@@ -6,21 +6,15 @@
         "role": "user"
     },
     {
-        "id": 2,
-        "email": "akjol.nuketaev.2001@mail.ru",
-        "password": "$2y$10$t1thcXXZP6Fj4yAXld3MReb8RbAwyqYr7YCACDiNjqJJTP6J.jpbC",
-        "role": "user"
-    },
-    {
-        "id": 3,
-        "email": "akjol.nu@mail.ru",
-        "password": "$2y$10$nxWu5Sg8sCGFnIVJgfhL9uQQp\/XxyC3HMOlZBP5fk2SJtv.5u\/Ojq",
-        "role": "user"
-    },
-    {
         "id": 4,
         "email": "akzhol.nuketayev@gmail.com",
         "password": "$2y$10$L3n63IC.znGd7U5dDeu4fOT0qlGFRYcCiqORgC9TBm9\/oZyFeRqCu",
+        "role": "admin"
+    },
+    {
+        "id": 5,
+        "email": "CAphp@gmail.com",
+        "password": "$2y$10$\/SRdo0UEov83ZG9gu1lga..OQ07amVM7DmTC94iESxGLkXAbiCTIu",
         "role": "user"
     }
 ]

@@ -1,36 +1,17 @@
 <?php
-// lib/common.php
+// main library file that loads everything else
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/json_driver.php';
 
+// loading all the helper modules
+require_once __DIR__ . '/modules/security.php';
+require_once __DIR__ . '/modules/auth.php';
+require_once __DIR__ . '/modules/flash.php';
+require_once __DIR__ . '/modules/image.php';
+require_once __DIR__ . '/modules/task_service.php';
+
+// start session if not started yet
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
-}
-
-// XSS Protection
-function h($str) {
-    return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
-}
-
-// Security: Login Check
-function require_auth() {
-    if (!isset($_SESSION['user_id'])) {
-        header("Location: login.php");
-        exit();
-    }
-}
-
-// Flash messages (Success/Error alerts)
-function set_flash($type, $message) {
-    $_SESSION['flash'] = ['type' => $type, 'msg' => $message];
-}
-
-function get_flash() {
-    if (isset($_SESSION['flash'])) {
-        $flash = $_SESSION['flash'];
-        unset($_SESSION['flash']);
-        return $flash;
-    }
-    return null;
 }
 ?>
