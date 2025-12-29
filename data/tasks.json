@@ -3,8 +3,8 @@
         "id": 2,
         "user_id": 4,
         "subject_id": "1",
-        "title": "Hele ukol 1",
-        "description": "udelat něco 1",
+        "title": "Ukol 1",
+        "description": "udelat něco Test",
         "due_date": "2025-12-25",
         "status": "pending",
         "image": "694c57f7574d7.png"
@@ -12,12 +12,12 @@
     {
         "id": 3,
         "user_id": 4,
-        "subject_id": "1",
-        "title": "2",
-        "description": "2",
+        "subject_id": "2",
+        "title": "Zvuk",
+        "description": "Upravit zvuk ZMT",
         "due_date": "2025-12-27",
         "status": "pending",
-        "image": null
+        "image": "6952d770a22c5.png"
     },
     {
         "id": 4,

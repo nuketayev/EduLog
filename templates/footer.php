@@ -12,7 +12,7 @@
 </div>
 
 <footer class="text-center mt-50 text-muted mb-20">
-    <small>&copy; 2025 <?= defined('APP_NAME') ? APP_NAME : 'EduLog' ?> - Semestrální práce - AkzholNuketayev</small>
+    <small>&copy; 2025 <?= defined('APP_NAME') ? APP_NAME : 'EduLog' ?> - Semestrální práce - Akzhol Nuketayev</small>
 </footer>
 
 <script src="assets/js/script.js?v=2.4"></script>
