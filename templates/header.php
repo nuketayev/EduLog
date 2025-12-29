@@ -1,10 +1,17 @@
+<?php
+/**
+ * Header Template.
+ * Top part of HTML.
+ */
+?>
 <!DOCTYPE html>
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= defined('APP_NAME') ? APP_NAME : 'EduLog' ?></title>
-    <link rel="stylesheet" href="assets/css/style.css?v=2.0">
+    <link rel="stylesheet" href="assets/css/style.css?v=2.3">
+    <meta name="csrf-token" content="<?= generate_csrf() ?>">
 </head>
 <body>
 

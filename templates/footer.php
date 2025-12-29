@@ -1,3 +1,9 @@
+<?php
+/**
+ * Footer Template.
+ * Bottom part of HTML.
+ */
+?>
 </main> 
 
 <div id="imageModal">
@@ -9,6 +15,6 @@
     <small>&copy; 2025 <?= defined('APP_NAME') ? APP_NAME : 'EduLog' ?> - Semestrální práce - AkzholNuketayev</small>
 </footer>
 
-<script src="assets/js/script.js?v=2.0"></script>
+<script src="assets/js/script.js?v=2.4"></script>
 </body>
 </html>

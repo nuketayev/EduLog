@@ -1,5 +1,9 @@
 <?php
-// login page
+/**
+ * Login Page.
+ * User authentication.
+ */
+
 require 'lib/common.php';
 
 if (isset($_SESSION['user_id'])) {
@@ -31,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         header("Location: index.php");
         exit();
     } else {
-        set_flash('error', 'Wrong email or password.');
+        set_flash('error', 'Nesprávný email nebo heslo.');
     }
 }
 
@@ -39,7 +43,7 @@ include 'templates/header.php';
 ?>
 
 <div class="card card-narrow">
-    <h2 class="text-center">Login</h2>
+    <h2 class="text-center">Přihlášení</h2>
     
     <form method="post">
         <input type="hidden" name="csrf_token" value="<?= generate_csrf() ?>">
@@ -48,15 +52,15 @@ include 'templates/header.php';
             <input type="email" name="email" id="email" required value="<?= h($email) ?>">
         </div>
         <div class="form-group">
-            <label for="password">Password:</label>
+            <label for="password">Heslo:</label>
             <input type="password" name="password" id="password" required>
         </div>
         
-        <button type="submit" class="btn btn-primary w-100">Sign In</button>
+        <button type="submit" class="btn btn-primary w-100">Přihlásit se</button>
     </form>
     
     <div class="text-center mt-15">
-        <p>No account? <a href="register.php">Register here</a>.</p>
+        <p>Nemáte účet? <a href="register.php">Registrujte se zde</a>.</p>
     </div>
 </div>
 

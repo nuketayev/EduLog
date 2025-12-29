@@ -1,18 +1,21 @@
 <?php
-// main dashboard page
+/**
+ * Main Page.
+ * Dashboard with task list and filters.
+ */
+
 require 'lib/common.php';
 require_auth();
 
 $user_id = $_SESSION['user_id'];
-// get filters from url
 $status_filter = $_GET['status'] ?? 'pending';
 $subject_filter = $_GET['subject_id'] ?? '';
 
-// load data from json
+// load data
 $all_tasks = get_tasks();
 $all_subjects = get_subjects();
 
-// map subjects to ids
+// prepare maps
 $subject_map = [];
 $my_subjects = [];
 foreach ($all_subjects as $s) {
@@ -20,27 +23,26 @@ foreach ($all_subjects as $s) {
     if ($s['user_id'] == $user_id) $my_subjects[] = $s;
 }
 
-// get filtered lists using helper function
-$my_tasks_all = get_filtered_tasks($all_tasks, $user_id); // needed for stats count
-$filtered_tasks = get_filtered_tasks($all_tasks, $user_id, $status_filter, $subject_filter); // needed for view
+// get tasks
+$my_tasks_all = get_filtered_tasks($all_tasks, $user_id); 
+$filtered_tasks = get_filtered_tasks($all_tasks, $user_id, $status_filter, $subject_filter); 
 
-// prepare data for display (dates, images, etc)
+// add display info
 foreach ($filtered_tasks as &$task) {
     $task = enrich_task_data($task, $subject_map);
 }
 unset($task);
 
-// calc stats
+// stats
 $total = count($my_tasks_all);
 $pending = count(array_filter($my_tasks_all, fn($t) => $t['status'] === 'pending'));
 $completed = $total - $pending;
 
-// pagination logic
+// pagination
 $page = isset($_GET['page']) ? max(1, intval($_GET['page'])) : 1;
 $per_page = 5; 
 $total_visible = count($filtered_tasks);
 $max_pages = ceil($total_visible / $per_page);
-// slice array for current page
 $paged_tasks = array_slice($filtered_tasks, ($page - 1) * $per_page, $per_page);
 
 include 'templates/header.php';

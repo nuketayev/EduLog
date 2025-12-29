@@ -1,11 +1,15 @@
 <?php
-// admin panel for managing users
+/**
+ * Admin Panel.
+ * Manage users and data.
+ */
+
 require 'lib/common.php';
 require_auth();
 
 // check role
 if ($_SESSION['role'] !== 'admin') {
-    set_flash('error', 'Access denied. Admins only.');
+    set_flash('error', 'Přístup zamítnut. Nemáte oprávnění administrátora.');
     header("Location: index.php");
     exit();
 }
@@ -14,19 +18,19 @@ $users = get_users();
 $all_tasks = get_tasks();
 $all_subjects = get_subjects();
 
-// delete user logic
+// delete user
 if (isset($_GET['delete_user'])) {
     verify_csrf_token($_GET['token'] ?? '');
 
     $del_id = $_GET['delete_user'];
     
     if ($del_id == $_SESSION['user_id']) {
-        set_flash('error', 'You cannot delete yourself.');
+        set_flash('error', 'Nemůžete smazat sami sebe.');
     } else {
         // remove user
         $users = array_filter($users, fn($u) => $u['id'] != $del_id);
         
-        // cleanup images
+        // cleanup files
         $upload_dir = __DIR__ . '/assets/uploads/';
         foreach ($all_tasks as $t) {
             if ($t['user_id'] == $del_id && !empty($t['image'])) {
@@ -39,7 +43,7 @@ if (isset($_GET['delete_user'])) {
             }
         }
         
-        // remove their tasks and subjects
+        // delete data
         $all_tasks = array_filter($all_tasks, fn($t) => $t['user_id'] != $del_id);
         $all_subjects = array_filter($all_subjects, fn($s) => $s['user_id'] != $del_id);
         
@@ -47,13 +51,13 @@ if (isset($_GET['delete_user'])) {
         save_tasks(array_values($all_tasks));
         save_subjects(array_values($all_subjects));
         
-        set_flash('success', 'User and all data deleted.');
+        set_flash('success', 'Uživatel a jeho data byli smazáni.');
     }
     header("Location: admin.php");
     exit();
 }
 
-// promote/demote user
+// change role
 if (isset($_GET['toggle_role'])) {
     verify_csrf_token($_GET['token'] ?? '');
 
@@ -65,7 +69,7 @@ if (isset($_GET['toggle_role'])) {
         }
     }
     save_users($users);
-    set_flash('success', 'User role updated.');
+    set_flash('success', 'Role uživatele byla změněna.');
     header("Location: admin.php");
     exit();
 }
@@ -74,7 +78,7 @@ include 'templates/header.php';
 ?>
 
 <div class="card">
-    <h2>User Administration</h2>
+    <h2>Administrace uživatelů</h2>
     <table class="table-full mt-20">
         <thead>
             <tr>
@@ -82,7 +86,7 @@ include 'templates/header.php';
                 <th>Email</th>
                 <th>Role</th>
                 <th>Data</th>
-                <th class="text-right">Actions</th>
+                <th class="text-right">Akce</th>
             </tr>
         </thead>
         <tbody>
@@ -100,14 +104,14 @@ include 'templates/header.php';
                     <?php endif; ?>
                 </td>
                 <td class="text-muted">
-                    <?= $task_count ?> tasks
+                    <?= $task_count ?> úkolů
                 </td>
                 <td class="text-right">
                     <?php if ($u['id'] != $_SESSION['user_id']): ?>
-                        <a href="?toggle_role=<?= $u['id'] ?>&token=<?= generate_csrf() ?>" class="btn-sm mr-10">Toggle Role</a>
-                        <a href="?delete_user=<?= $u['id'] ?>&token=<?= generate_csrf() ?>" class="text-danger btn-sm js-confirm" data-confirm="Really delete user?">Delete</a>
+                        <a href="?toggle_role=<?= $u['id'] ?>&token=<?= generate_csrf() ?>" class="btn-sm mr-10">Změnit roli</a>
+                        <a href="?delete_user=<?= $u['id'] ?>&token=<?= generate_csrf() ?>" class="text-danger btn-sm js-confirm" data-confirm="Opravdu smazat uživatele a VŠECHNA jeho data?">Smazat</a>
                     <?php else: ?>
-                        <span class="text-muted btn-sm">(You)</span>
+                        <span class="text-muted btn-sm">(To jste vy)</span>
                     <?php endif; ?>
                 </td>
             </tr>

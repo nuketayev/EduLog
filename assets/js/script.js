@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // global confirm for delete actions
         if (e.target.matches('.js-confirm')) {
-            const msg = e.target.dataset.confirm || 'Are you sure?';
+            const msg = e.target.dataset.confirm || 'Opravdu?';
             if (!confirm(msg)) {
                 e.preventDefault(); // stop if user cancels
             }
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
             const confirm = registerForm.querySelector('input[name="password_confirm"]').value;
             if (pass !== confirm) {
                 e.preventDefault();
-                alert("Passwords do not match!");
+                alert("Hesla se neshodují!");
             }
         });
     }
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
         listContainer.innerHTML = ''; 
 
         if (allFilteredTasks.length === 0) {
-            listContainer.innerHTML = '<div class="card text-center text-muted">Empty list.</div>';
+            listContainer.innerHTML = '<div class="card text-center text-muted">Seznam je prázdný.</div>';
             if (paginationContainer) paginationContainer.innerHTML = ''; 
             return;
         }
@@ -151,17 +151,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!paginationContainer) return;
 
         if (totalPages <= 1) {
-            paginationContainer.innerHTML = '<span class="mx-10">Page 1 of 1</span>';
+            paginationContainer.innerHTML = '<span class="mx-10">Strana 1 z 1</span>';
             return;
         }
 
         let html = '<div class="text-center mt-20">';
         if (currentPage > 1) {
-            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage - 1}">&laquo; Prev</button>`;
+            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage - 1}">&laquo; Předchozí</button>`;
         }
-        html += `<span style="margin: 0 10px;">Page ${currentPage} of ${totalPages}</span>`;
+        html += `<span style="margin: 0 10px;">Strana ${currentPage} z ${totalPages}</span>`;
         if (currentPage < totalPages) {
-            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage + 1}">Next &raquo;</button>`;
+            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage + 1}">Další &raquo;</button>`;
         }
         html += '</div>';
         paginationContainer.innerHTML = html;
@@ -187,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <img 
                 src="${task.thumb_url}" 
                 class="task-thumb js-open-modal" 
-                alt="Attachment"
+                alt="Příloha"
                 loading="lazy" 
                 data-src="${task.full_url}"
             >`;
@@ -202,26 +202,26 @@ document.addEventListener("DOMContentLoaded", () => {
         let doneButtonHtml = '';
 
         if (task.status === 'completed') {
-            statusLabel = 'Done';
+            statusLabel = 'Hotovo';
             statusClass = 'completed';
         } else if (task.is_overdue) {
-            statusLabel = 'OVERDUE';
+            statusLabel = 'PO TERMÍNU';
             statusClass = 'overdue';
             rowClass = 'overdue';
-            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Done</button>`;
+            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Hotovo</button>`;
         } else {
-            statusLabel = 'Pending';
+            statusLabel = 'Nevyřízeno';
             statusClass = 'pending';
-            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Done</button>`;
+            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Hotovo</button>`;
         }
 
         if (task.status !== 'completed') {
             if (task.is_past) {
-                daysText = `<span class="text-danger" style="font-weight:bold;">(${task.days_left} days late)</span>`;
+                daysText = `<span class="text-danger" style="font-weight:bold;">(${task.days_left} dní po termínu)</span>`;
             } else if (task.days_left == 0) {
-                daysText = `<span style="color:#e0a800; font-weight:bold;">(Today)</span>`;
+                daysText = `<span style="color:#e0a800; font-weight:bold;">(Dnes)</span>`;
             } else {
-                daysText = `<span class="color-success">(${task.days_left} days left)</span>`;
+                daysText = `<span class="color-success">(Zbývá ${task.days_left} dní)</span>`;
             }
         }
 
@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <strong class="task-title">${task.title}</strong>
                 ${desc}
                 <small class="text-muted">
-                    Deadline: ${dateDisplay} ${daysText}
+                    Termín: ${dateDisplay} ${daysText}
                 </small>
                 ${imageHtml}
             </div>
@@ -242,8 +242,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="status-badge status-${statusClass} mr-10">${statusLabel}</span>
                 <br><br>
                 ${doneButtonHtml}
-                <a href="edit.php?id=${task.id}" class="btn-sm mr-5">Edit</a>
-                <a href="delete.php?type=task&id=${task.id}&token=${document.querySelector('meta[name="csrf-token"]')?.content || ''}" class="text-danger btn-sm js-confirm" data-confirm="Delete this task?">Delete</a>
+                <a href="edit.php?id=${task.id}" class="btn-sm mr-5">Upravit</a>
+                <a href="delete.php?type=task&id=${task.id}&token=${document.querySelector('meta[name="csrf-token"]')?.content || ''}" class="text-danger btn-sm js-confirm" data-confirm="Smazat úkol?">Smazat</a>
             </div>
         </div>`;
     }

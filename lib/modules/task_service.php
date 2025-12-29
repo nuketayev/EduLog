@@ -1,21 +1,32 @@
 <?php
-// logic for filtering and preparing tasks data
+/**
+ * Task Service.
+ * Logic for filtering and preparing task data.
+ */
 
-// filters tasks array based on user, status and subject
+/**
+ * Filter list of tasks.
+ *
+ * @param array $all_tasks List of all tasks
+ * @param int $user_id ID of current user
+ * @param string $status Filter by status (pending/completed)
+ * @param string $subject_id Filter by subject ID
+ * @return array Filtered list
+ */
 function get_filtered_tasks($all_tasks, $user_id, $status = '', $subject_id = '') {
     $filtered = [];
     foreach ($all_tasks as $t) {
-        // checks if task belongs to user
+        // check user
         if ($t['user_id'] != $user_id) continue;
         
-        // apply filters if they are set
+        // check filters
         if ($status !== '' && $t['status'] !== $status) continue;
         if ($subject_id !== '' && $t['subject_id'] != $subject_id) continue;
         
         $filtered[] = $t;
     }
     
-    // sort by due date, oldest first
+    // sort by date
     usort($filtered, function($a, $b) {
         return strtotime($a['due_date']) - strtotime($b['due_date']);
     });
@@ -23,24 +34,31 @@ function get_filtered_tasks($all_tasks, $user_id, $status = '', $subject_id = ''
     return $filtered;
 }
 
-// adds extra info to task for display (formatted dates, colors, images)
+/**
+ * Add display data to a task.
+ * Adds colors, dates and text.
+ *
+ * @param array $task The task data
+ * @param array $subject_map List of subjects
+ * @return array Modified task
+ */
 function enrich_task_data($task, $subject_map) {
     $today = new DateTime();
-    $today->setTime(0,0,0); // reset time to midnight
+    $today->setTime(0,0,0);
     
     $due = new DateTime($task['due_date']);
     $due->setTime(0,0,0);
     
     $diff = $today->diff($due);
     
-    // basic calculation
+    // basic info
     $task['subject_name'] = $subject_map[$task['subject_id']] ?? '';
     $task['days_left'] = $diff->days;
     $task['is_past'] = $diff->invert; 
     $task['is_overdue'] = ($task['is_past'] && $task['status'] === 'pending');
     $task['due_date_formatted'] = date('d.m.Y', strtotime($task['due_date']));
 
-    // set css classes and text labels
+    // set style classes
     if ($task['status'] === 'completed') {
         $task['status_text'] = 'Hotovo';
         $task['status_class'] = 'completed';
@@ -63,7 +81,7 @@ function enrich_task_data($task, $subject_map) {
         }
     }
 
-    // handle image paths
+    // handle images
     $task['thumb_url'] = null;
     $task['full_url'] = null;
     
@@ -73,7 +91,7 @@ function enrich_task_data($task, $subject_map) {
         
         $thumb_name = 'thumb_' . $task['image'];
         
-        // generate thumb if missing
+        // make thumb if missing
         if (!file_exists($upload_dir . $thumb_name) && file_exists($upload_dir . $task['image'])) {
             make_thumb($upload_dir . $task['image'], $upload_dir . $thumb_name, 300);
         }
@@ -81,13 +99,12 @@ function enrich_task_data($task, $subject_map) {
         if (file_exists($upload_dir . $thumb_name)) {
             $task['thumb_url'] = $web_dir . $thumb_name;
         } else {
-            // fallback to original if thumb fails
             $task['thumb_url'] = $web_dir . $task['image'];
         }
         $task['full_url'] = $web_dir . $task['image'];
     }
 
-    // escape output for xss safety
+    // safety clean
     $task['title'] = h($task['title']);
     $task['description'] = h($task['description'] ?? '');
     $task['subject_name'] = h($task['subject_name']);

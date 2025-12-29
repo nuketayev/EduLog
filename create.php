@@ -1,5 +1,9 @@
 <?php
-// create new task page
+/**
+ * Create Task.
+ * Form for adding new tasks.
+ */
+
 require 'lib/common.php';
 require_auth();
 
@@ -11,7 +15,7 @@ if (function_exists('get_subjects')) {
     });
 }
 
-// init vars for form
+// defaults
 $title = '';
 $description = '';
 $date = '';
@@ -28,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($title && $date) {
         $tasks = get_tasks();
         
-        // handle image upload
+        // upload image
         $image_file = null;
         if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
             $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
@@ -39,12 +43,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 if (move_uploaded_file($_FILES['image']['tmp_name'], $dest)) {
                     $image_file = $new_name;
-                    // make thumb
                     make_thumb($dest, $upload_dir . 'thumb_' . $new_name, 300);
                 }
             }
         }
 
+        // save
         $tasks[] = [
             'id' => get_next_id($tasks),
             'user_id' => $user_id,
@@ -57,11 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ];
         
         save_tasks($tasks);
-        set_flash('success', 'Task created.');
+        set_flash('success', 'Úkol vytvořen.');
         header("Location: index.php");
         exit();
     } else {
-        set_flash('error', 'Please fill required fields.');
+        set_flash('error', 'Vyplňte prosím povinná pole.');
     }
 }
 
@@ -69,15 +73,15 @@ include 'templates/header.php';
 ?>
 
 <div class="card card-narrow">
-    <h2>New Task</h2>
+    <h2>Nový úkol</h2>
     <form method="post" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="<?= generate_csrf() ?>">
         
         <?php if (!empty($subjects)): ?>
         <div class="form-group">
-            <label for="subject_id">Subject:</label>
+            <label for="subject_id">Předmět:</label>
             <select name="subject_id" id="subject_id">
-                <option value="">-- None --</option>
+                <option value="">-- Žádný --</option>
                 <?php foreach($subjects as $s): ?>
                     <option value="<?= $s['id'] ?>" <?= $subject_id == $s['id'] ? 'selected' : '' ?>>
                         <?= h($s['name']) ?>
@@ -88,29 +92,29 @@ include 'templates/header.php';
         <?php endif; ?>
 
         <div class="form-group">
-            <label for="title">Title: *</label>
-            <input type="text" name="title" id="title" required value="<?= h($title) ?>">
+            <label for="title">Název: *</label>
+            <input type="text" name="title" id="title" required value="<?= h($title) ?>" placeholder="Např. Koupit skripta">
         </div>
 
         <div class="form-group">
-            <label for="description">Description:</label>
-            <textarea name="description" id="description" rows="4"><?= h($description) ?></textarea>
+            <label for="description">Popis:</label>
+            <textarea name="description" id="description" rows="4" placeholder="Detaily..."><?= h($description) ?></textarea>
         </div>
 
         <div class="form-group">
-            <label for="due_date">Due Date: *</label>
+            <label for="due_date">Termín: *</label>
             <input type="date" name="due_date" id="due_date" required value="<?= h($date) ?>">
         </div>
 
         <div class="form-group">
-            <label for="image">Image (optional):</label>
+            <label for="image">Obrázek (volitelné):</label>
             <input type="file" name="image" id="image" accept="image/*">
         </div>
 
-        <button type="submit" class="btn btn-success w-100">Save Task</button>
+        <button type="submit" class="btn btn-success w-100">Uložit úkol</button>
     </form>
     <div class="text-center mt-15">
-        <a href="index.php" class="text-muted">Cancel</a>
+        <a href="index.php" class="text-muted">Zrušit</a>
     </div>
 </div>
 <?php include 'templates/footer.php'; ?>

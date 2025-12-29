@@ -1,34 +1,44 @@
 <?php
-// image processing stuff
+/**
+ * Image module.
+ * Functions for resizing images.
+ */
 
-// function to create a smaller thumbnail from big image
-// uses gd library
+/**
+ * Create a small thumbnail image.
+ * Uses GD library.
+ *
+ * @param string $src Path to original image
+ * @param string $dest Path to save new image
+ * @param int $desired_width Width in pixels
+ * @return bool True if success
+ */
 function make_thumb($src, $dest, $desired_width) {
-    // check if gd is enabled on server
+    // check if gd is installed
     if (!extension_loaded('gd')) return false;
 
     $info = getimagesize($src);
-    if ($info === false) return false; // not an image
+    if ($info === false) return false; 
     
     $mime = $info['mime'];
     
-    // open image based on type
+    // open file based on type
     switch ($mime) {
         case 'image/jpeg': $source_image = imagecreatefromjpeg($src); break;
         case 'image/png':  $source_image = imagecreatefrompng($src); break;
         case 'image/gif':  $source_image = imagecreatefromgif($src); break;
-        default: return false; // format not supported
+        default: return false; // bad format
     }
     
-    // calc new height to keep aspect ratio
+    // calculate size
     $width = imagesx($source_image);
     $height = imagesy($source_image);
     $desired_height = floor($height * ($desired_width / $width));
     
-    // create empty canvas
+    // make new empty image
     $virtual_image = imagecreatetruecolor($desired_width, $desired_height);
     
-    // keep transparency for png and gif
+    // fix transparency for png/gif
     if ($mime == 'image/png' || $mime == 'image/gif') {
         imagecolortransparent($virtual_image, imagecolorallocatealpha($virtual_image, 0, 0, 0, 127));
         imagealphablending($virtual_image, false);

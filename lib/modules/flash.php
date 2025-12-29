@@ -1,12 +1,25 @@
 <?php
-// handling flash messages (success/error alerts)
+/**
+ * Flash messages module.
+ * For showing alerts to user.
+ */
 
-// save message to session to show it on next page load
+/**
+ * Save a message for the next page.
+ *
+ * @param string $type Type of message (error, success)
+ * @param string $message Text to show
+ * @return void
+ */
 function set_flash($type, $message) {
     $_SESSION['flash'] = ['type' => $type, 'msg' => $message];
 }
 
-// get the message and clear it from session so it doesnt show again
+/**
+ * Get the message and clear it.
+ *
+ * @return array|null The message or null
+ */
 function get_flash() {
     if (isset($_SESSION['flash'])) {
         $flash = $_SESSION['flash'];

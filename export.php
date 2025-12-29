@@ -1,5 +1,9 @@
 <?php
-// export tasks to csv
+/**
+ * Export CSV.
+ * Download tasks as file.
+ */
+
 require 'lib/common.php';
 require_auth();
 
@@ -10,12 +14,12 @@ $my_tasks = array_filter($tasks, function($t) use ($user_id) {
     return $t['user_id'] == $user_id;
 });
 
-// force download headers
+// headers
 header('Content-Type: text/csv; charset=utf-8');
-header('Content-Disposition: attachment; filename=tasks.csv');
+header('Content-Disposition: attachment; filename=ukoly.csv');
 
 $output = fopen('php://output', 'w');
-fputcsv($output, ['ID', 'Title', 'Description', 'Due Date', 'Status', 'Image']);
+fputcsv($output, ['ID', 'Název', 'Popis', 'Termín', 'Stav', 'Obrázek']);
 
 foreach ($my_tasks as $t) {
     fputcsv($output, [

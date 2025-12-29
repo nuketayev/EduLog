@@ -1,5 +1,9 @@
 <?php
-// ajax handler to complete tasks
+/**
+ * Complete Task.
+ * Sets status to completed.
+ */
+
 require 'lib/common.php';
 require_auth();
 
@@ -21,7 +25,7 @@ if ($id) {
         $tasks[$found_index]['status'] = 'completed';
         save_tasks($tasks);
         
-        // if ajax request, return json stats
+        // json response
         if (isset($_GET['ajax'])) {
             $my_tasks = array_filter($tasks, fn($t) => $t['user_id'] == $user_id);
             
@@ -41,7 +45,7 @@ if ($id) {
             exit;
         }
         
-        set_flash('success', 'Task done.');
+        set_flash('success', 'Úkol dokončen.');
     }
 }
 

@@ -1,5 +1,9 @@
 <?php
-// handles deletion logic
+/**
+ * Delete Action.
+ * Handles deletion of items.
+ */
+
 require 'lib/common.php';
 require_auth();
 
@@ -9,7 +13,7 @@ $token = $_GET['token'] ?? '';
 $user_id = $_SESSION['user_id'];
 
 if ($id && $type) {
-    // security check against fake links
+    // check token
     verify_csrf_token($token);
 
     if ($type === 'task') {
@@ -24,7 +28,7 @@ if ($id && $type) {
             }
         }
         
-        // delete files too
+        // delete image
         if ($to_delete && !empty($to_delete['image'])) {
             $path = __DIR__ . '/assets/uploads/' . $to_delete['image'];
             $thumb_path = __DIR__ . '/assets/uploads/thumb_' . $to_delete['image'];
@@ -45,7 +49,7 @@ if ($id && $type) {
 
     $new_data = array_values($new_data);
     $file_func($new_data);
-    set_flash('success', 'Item deleted.');
+    set_flash('success', 'Položka smazána.');
 }
 
 if ($type === 'subject') {
