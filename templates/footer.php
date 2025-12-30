@@ -8,7 +8,7 @@
 
 <div id="imageModal">
     <span class="close-modal">&times;</span>
-    <img id="modalImage"> 
+    <img id="modalImage" src="#" alt="Nahled Obrazku"> 
 </div>
 
 <footer class="text-center mt-50 text-muted mb-20">
