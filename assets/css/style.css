@@ -112,3 +112,22 @@ input, textarea, select { width: 100%; padding: 0.5rem; border: 1px solid #ccc; 
     header, .btn, form, footer { display: none !important; }
     .card { box-shadow: none; border: 1px solid #ddd; }
 }
+
+/* Validation Error State */
+.input-error {
+    border: 1px solid var(--danger) !important;
+    background-color: #fff8f8;
+    transition: border-color 0.2s;
+}
+
+/* Optional: Shake animation for better effect */
+@keyframes shake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    50% { transform: translateX(5px); }
+    75% { transform: translateX(-5px); }
+    100% { transform: translateX(0); }
+}
+.shake {
+    animation: shake 0.3s ease-in-out;
+}

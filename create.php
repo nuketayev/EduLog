@@ -74,7 +74,7 @@ include 'templates/header.php';
 
 <div class="card card-narrow">
     <h2>Nový úkol</h2>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="createTaskForm">
         <input type="hidden" name="csrf_token" value="<?= generate_csrf() ?>">
         
         <?php if (!empty($subjects)): ?>

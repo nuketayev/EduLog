@@ -56,7 +56,7 @@ include 'templates/header.php';
 
 <div class="card card-narrow">
     <h2 class="text-center">Registrace</h2>
-    <form method="post">
+    <form method="post" id="registerForm">
         <input type="hidden" name="csrf_token" value="<?= generate_csrf() ?>">
         <div class="form-group">
             <label for="email">Email:</label>

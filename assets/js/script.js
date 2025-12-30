@@ -5,6 +5,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const filterForm = document.getElementById('filterForm');
     const paginationContainer = document.getElementById('pagination'); 
     
+    // --- Initialize Validations ---
+    setupFormValidation('loginForm');
+    setupFormValidation('registerForm');
+    setupFormValidation('createTaskForm'); // Also useful for creating tasks
+    
     let allFilteredTasks = [];
     let currentPage = 1;
     const itemsPerPage = 5;
@@ -19,7 +24,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // handle clicks on the page (event delegation)
-    // this way we dont need onclick in html
     document.addEventListener('click', (e) => {
         // complete button
         if (e.target.matches('.js-mark-complete')) {
@@ -46,30 +50,86 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // global confirm for delete actions
         if (e.target.matches('.js-confirm')) {
-            const msg = e.target.dataset.confirm || 'Opravdu?';
+            const msg = e.target.dataset.confirm || 'Are you sure?';
             if (!confirm(msg)) {
                 e.preventDefault(); // stop if user cancels
             }
         }
     });
 
-    // check passwords on registration
-    const registerForm = document.querySelector('form[action*="register"]'); 
+    // Check passwords match specifically for register
+    const registerForm = document.getElementById('registerForm');
     if (registerForm) {
         registerForm.addEventListener('submit', (e) => {
-            const pass = registerForm.querySelector('input[name="password"]').value;
-            const confirm = registerForm.querySelector('input[name="password_confirm"]').value;
-            if (pass !== confirm) {
-                e.preventDefault();
-                alert("Hesla se neshodují!");
+            const pass = registerForm.querySelector('input[name="password"]');
+            const confirm = registerForm.querySelector('input[name="password_confirm"]');
+            
+            // Only check if both are filled (validation handles empty case)
+            if (pass && confirm && pass.value && confirm.value) {
+                if (pass.value !== confirm.value) {
+                    e.preventDefault();
+                    // Highlight both
+                    pass.classList.add('input-error');
+                    confirm.classList.add('input-error');
+                    alert("Passwords do not match!");
+                }
             }
         });
     }
 
-    // --- functions ---
+    // --- Validation Logic ---
+    function setupFormValidation(formId) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+
+        // 1. Disable default browser validation bubbles
+        form.setAttribute('novalidate', true);
+
+        const inputs = form.querySelectorAll('input, textarea, select');
+
+        inputs.forEach(input => {
+            // 2. Remove red as soon as user clicks/focuses
+            input.addEventListener('focus', () => {
+                input.classList.remove('input-error');
+            });
+
+            // 3. Add red back if they leave the field empty (Blur)
+            input.addEventListener('blur', () => {
+                if (input.hasAttribute('required') && !input.value.trim()) {
+                    input.classList.add('input-error');
+                }
+            });
+        });
+
+        // 4. Handle Submit - Check ALL fields at once
+        form.addEventListener('submit', (e) => {
+            let isValid = true;
+            let firstInvalid = null;
+
+            inputs.forEach(input => {
+                if (input.hasAttribute('required') && !input.value.trim()) {
+                    input.classList.add('input-error');
+                    input.classList.add('shake'); // Optional animation
+                    
+                    // Remove shake class after animation so it can run again
+                    setTimeout(() => input.classList.remove('shake'), 300);
+
+                    isValid = false;
+                    if (!firstInvalid) firstInvalid = input;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault(); // Stop form submission
+                // Optional: Focus the first red field
+                if (firstInvalid) firstInvalid.focus(); 
+            }
+        });
+    }
+
+    // --- Existing Functions (Unchanged) ---
 
     function markComplete(taskId) {
-        // call backend to update status
         fetch(`complete.php?id=${taskId}&ajax=1`)
             .then(res => res.json())
             .then(data => {
@@ -83,7 +143,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateStats(stats) {
         if (!stats) return;
-        // update numbers on dashboard
         const statTotal = document.getElementById('stat-total');
         const statPending = document.getElementById('stat-pending');
         const statCompleted = document.getElementById('stat-completed');
@@ -92,13 +151,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (statCompleted) statCompleted.innerText = stats.completed;
     }
 
-    // load tasks from api
     function fetchTasks() {
         const subjectId = document.querySelector('select[name="subject_id"]').value;
         const status = document.querySelector('select[name="status"]').value;
         const listContainer = document.querySelector('.task-list');
 
-        // update browser url just for looks
         const url = new URL(window.location);
         url.searchParams.set('page', '1');
         window.history.replaceState({}, '', url);
@@ -123,23 +180,20 @@ document.addEventListener("DOMContentLoaded", () => {
         listContainer.innerHTML = ''; 
 
         if (allFilteredTasks.length === 0) {
-            listContainer.innerHTML = '<div class="card text-center text-muted">Seznam je prázdný.</div>';
+            listContainer.innerHTML = '<div class="card text-center text-muted">Empty list.</div>';
             if (paginationContainer) paginationContainer.innerHTML = ''; 
             return;
         }
 
-        // calculate pages
         const totalPages = Math.ceil(allFilteredTasks.length / itemsPerPage);
         
         if (currentPage > totalPages) currentPage = totalPages;
         if (currentPage < 1) currentPage = 1;
 
-        // slice data
         const startIndex = (currentPage - 1) * itemsPerPage;
         const endIndex = startIndex + itemsPerPage;
         const tasksToShow = allFilteredTasks.slice(startIndex, endIndex);
 
-        // build html
         tasksToShow.forEach(task => {
             listContainer.innerHTML += buildTaskCard(task);
         });
@@ -151,17 +205,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!paginationContainer) return;
 
         if (totalPages <= 1) {
-            paginationContainer.innerHTML = '<span class="mx-10">Strana 1 z 1</span>';
+            paginationContainer.innerHTML = '<span class="mx-10">Page 1 of 1</span>';
             return;
         }
 
         let html = '<div class="text-center mt-20">';
         if (currentPage > 1) {
-            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage - 1}">&laquo; Předchozí</button>`;
+            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage - 1}">&laquo; Prev</button>`;
         }
-        html += `<span style="margin: 0 10px;">Strana ${currentPage} z ${totalPages}</span>`;
+        html += `<span style="margin: 0 10px;">Page ${currentPage} of ${totalPages}</span>`;
         if (currentPage < totalPages) {
-            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage + 1}">Další &raquo;</button>`;
+            html += `<button class="btn btn-pagination js-change-page" data-page="${currentPage + 1}">Next &raquo;</button>`;
         }
         html += '</div>';
         paginationContainer.innerHTML = html;
@@ -174,7 +228,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if(list) list.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // helper to create task html
     function buildTaskCard(task) {
         let subjectBadge = '';
         if (task.subject_name) {
@@ -187,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <img 
                 src="${task.thumb_url}" 
                 class="task-thumb js-open-modal" 
-                alt="Příloha"
+                alt="Attachment"
                 loading="lazy" 
                 data-src="${task.full_url}"
             >`;
@@ -202,26 +255,26 @@ document.addEventListener("DOMContentLoaded", () => {
         let doneButtonHtml = '';
 
         if (task.status === 'completed') {
-            statusLabel = 'Hotovo';
+            statusLabel = 'Done';
             statusClass = 'completed';
         } else if (task.is_overdue) {
-            statusLabel = 'PO TERMÍNU';
+            statusLabel = 'OVERDUE';
             statusClass = 'overdue';
             rowClass = 'overdue';
-            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Hotovo</button>`;
+            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Done</button>`;
         } else {
-            statusLabel = 'Nevyřízeno';
+            statusLabel = 'Pending';
             statusClass = 'pending';
-            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Hotovo</button>`;
+            doneButtonHtml = `<button class="btn btn-success btn-sm mr-5 js-mark-complete" data-id="${task.id}">Done</button>`;
         }
 
         if (task.status !== 'completed') {
             if (task.is_past) {
-                daysText = `<span class="text-danger" style="font-weight:bold;">(${task.days_left} dní po termínu)</span>`;
+                daysText = `<span class="text-danger" style="font-weight:bold;">(${task.days_left} days late)</span>`;
             } else if (task.days_left == 0) {
-                daysText = `<span style="color:#e0a800; font-weight:bold;">(Dnes)</span>`;
+                daysText = `<span style="color:#e0a800; font-weight:bold;">(Today)</span>`;
             } else {
-                daysText = `<span class="color-success">(Zbývá ${task.days_left} dní)</span>`;
+                daysText = `<span class="color-success">(${task.days_left} days left)</span>`;
             }
         }
 
@@ -234,7 +287,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <strong class="task-title">${task.title}</strong>
                 ${desc}
                 <small class="text-muted">
-                    Termín: ${dateDisplay} ${daysText}
+                    Deadline: ${dateDisplay} ${daysText}
                 </small>
                 ${imageHtml}
             </div>
@@ -242,8 +295,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span class="status-badge status-${statusClass} mr-10">${statusLabel}</span>
                 <br><br>
                 ${doneButtonHtml}
-                <a href="edit.php?id=${task.id}" class="btn-sm mr-5">Upravit</a>
-                <a href="delete.php?type=task&id=${task.id}&token=${document.querySelector('meta[name="csrf-token"]')?.content || ''}" class="text-danger btn-sm js-confirm" data-confirm="Smazat úkol?">Smazat</a>
+                <a href="edit.php?id=${task.id}" class="btn-sm mr-5">Edit</a>
+                <a href="delete.php?type=task&id=${task.id}&token=${document.querySelector('meta[name="csrf-token"]')?.content || ''}" class="text-danger btn-sm js-confirm" data-confirm="Delete this task?">Delete</a>
             </div>
         </div>`;
     }
